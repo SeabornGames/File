@@ -1,6 +1,0 @@
-from seaborn.file import *
-def smoke_test():
-    mkdir('%s/file_smoke_test/test1' % TRASH_PATH)
-    assert os.path.exists('%s/file_smoke_test/test1' % TRASH_PATH)
-    os.rmdir('%s/file_smoke_test/test1' % TRASH_PATH)
-    os.rmdir('%s/file_smoke_test' % TRASH_PATH)

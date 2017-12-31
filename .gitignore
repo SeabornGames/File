@@ -85,6 +85,8 @@ celerybeat-schedule
 # virtualenv
 .venv
 venv/
+venv2/
+venv3/
 ENV/
 
 # Spyder project settings
@@ -102,3 +104,6 @@ ENV/
 
 # pypi
 .pypirc
+.idea/
+
+.DS_Store
