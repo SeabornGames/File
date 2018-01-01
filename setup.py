@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(
-    name='seaborn_file',
+    name='seaborn-file',
     version='0.0.1',
     description='SeabornFile enables the manipulation of the'
                 'directories of a computer within a program.',
