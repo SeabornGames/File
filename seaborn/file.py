@@ -4,7 +4,6 @@ __date__ = "10/7/15"
 import os
 import shutil
 import hashlib
-import time
 import inspect
 import json
 
@@ -39,8 +38,8 @@ def clear_path(path):
     if TRASH_PATH == '.':
         shutil.rmtree(path, ignore_errors=True)
     else:
-        shutil.move(path,
-                    '%s/%s_%s' % (TRASH_PATH, os.path.basename(path), time()))
+        shutil.move(path, '%s/%s_%s' % (
+            TRASH_PATH, os.path.basename(path), time()))
 
 
 def get_filename(filename, trash=False):
@@ -202,7 +201,7 @@ def copy_file(source_file, destination_file, soft_link=False):
 
 def read_folder(folder, ext='*', uppercase=False, replace_dot='.', parent=''):
     """
-        This will read all of the files in the folder with the extention equal
+        This will read all of the files in the folder with the extension equal
         to ext
     :param folder: str of the folder name
     :param ext: str of the extention
@@ -232,7 +231,3 @@ class print_file():
         print(text)
     def flush(self):
         pass
-
-
-if __name__ == '__main__':
-    smoke_test()
