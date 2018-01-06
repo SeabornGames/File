@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 setup(
     name='seaborn-file',
@@ -15,9 +15,9 @@ setup(
     install_requires=[],
     extras_require={
     },
-    py_modules=['seaborn.file'],
+    packages=['seaborn'] + ['seaborn.' + i
+                            for i in find_packages(where='./seaborn')],
     license='MIT License',
-    packages=['seaborn'],
     classifiers=[
         'Intended Audience :: Developers',
         'Natural Language :: English',
