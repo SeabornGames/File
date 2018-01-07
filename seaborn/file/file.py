@@ -14,6 +14,8 @@ else:
 
 
 def mkdir(path):
+    if not isinstance(path, str):
+        path = str(path)
     if os.path.exists(os.path.abspath(path)):
         return
     path_directories = os.path.abspath(path).replace('\\', '/').split('/')
@@ -69,7 +71,15 @@ def find_folder(folder_name, path=None):
     if os.path.exists(os.path.join(path, folder_name)):
         return os.path.join(path, folder_name)
 
+
 def find_file(file, path=None):
+    """
+        This will find a file from path and if not found looks in the
+        parent directory.
+    :param file: str of the file name
+    :param path: str of the path, defaults to relevant path of the calling func
+    :return: str of the full path if found
+    """
     frm = inspect.currentframe().f_back
     if frm.f_code.co_name == 'run_code':
         frm = frm.f_back
@@ -88,6 +98,7 @@ def find_file(file, path=None):
     if os.path.exists(os.path.join(path, file)):
         return os.path.join(path, file)
     raise Exception("Failed to find file: %s in the folder hierachy: %s"%(file,original_path))
+
 
 def sync_folder(source_folder, destination_folder, soft_link='folder',
                 only_files=False):
@@ -224,10 +235,3 @@ def read_folder(folder, ext='*', uppercase=False, replace_dot='.', parent=''):
                     key = uppercase and key.upper() or key
                     ret[parent + key] = read_file(os.path.join(folder, file))
     return ret
-
-
-class print_file():
-    def write(self, text):
-        print(text)
-    def flush(self):
-        pass
