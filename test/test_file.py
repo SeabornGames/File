@@ -1,4 +1,4 @@
-from seaborn.file import *
+from seaborn.file.file import *
 import unittest
 
 class test_file(unittest.TestCase):
