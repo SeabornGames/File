@@ -1,7 +1,6 @@
-import unittest, os
+import unittest
 from shutil import rmtree
-from time import sleep
-from os import rmdir, listdir, remove, chdir
+from os import listdir
 from os.path import join, abspath, split
 from seaborn.file.file import *
 
@@ -15,7 +14,7 @@ TEST_CODE = 'test_file.py'
 PATH_NAME = split(TEST_PATH)[1]
 
 
-class test_file(unittest.TestCase):
+class TestFile(unittest.TestCase):
 
     def tearDown(self):
         rmtree(join(TEST_PATH, TEST_DIRS), ignore_errors=True)
@@ -63,8 +62,8 @@ class test_file(unittest.TestCase):
     def test_copy_file(self):
         copy_file(join(TEST_DATA, TEST_FILE),
                   join(TEST_PATH, TEST_DIRS, TEST_FILE))
-        self.assertEqual(''.join([i for i in open('_' + TEST_FILE).read()]),
-                         TEST_CONT)
+        with open(join(TEST_PATH, TEST_DIRS, TEST_FILE), 'r') as fp:
+            self.assertEqual(fp.read(), TEST_CONT)
 
     def test_read_folder(self):
         result = read_folder(TEST_PATH)
