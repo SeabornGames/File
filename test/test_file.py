@@ -1,21 +1,26 @@
 import unittest, os
 from time import sleep
-from os import \
-    rmdir as rmdir, \
-    listdir as listdir,\
-    remove as remove
-from os.path import \
-    join as join, \
-    abspath as abspath, \
-    split as split
+from os import rmdir, listdir, remove, chdir
+from os.path import join, abspath, split
 from seaborn.file.file import *
 
 TEST_PATH = split(abspath(__file__))[0]
 TEST_DIRS = 'mkdir'
+TEST_DATA = 'data'
 TEST_FILE = 'hello.wrld'
 TEST_CONT = 'Hello\nWorld'
+TEST_CODE = 'test_file.py'
 
 PATH_NAME = split(TEST_PATH)[1]
+
+def cleanup(path=TEST_DIRS):
+    queue = listdir(join(TEST_PATH,path))
+    for item in queue:
+        if '.' in item:
+            remove(join(TEST_PATH,path,item))
+        else:
+            cleanup(join(path,item))
+    rmdir(join(TEST_PATH,path))
 
 class test_file(unittest.TestCase):
 
@@ -26,9 +31,7 @@ class test_file(unittest.TestCase):
         except BaseException as e:
             raise e
         finally:
-            for i in listdir(join(TEST_PATH,TEST_DIRS)):
-                remove(join(TEST_PATH,TEST_DIRS,i))
-            rmdir(join(TEST_PATH, TEST_DIRS))
+            cleanup()
 
     def test_mkdir_for_file(self):
         mkdir_for_file(join(TEST_PATH, TEST_DIRS, TEST_FILE))
@@ -37,31 +40,29 @@ class test_file(unittest.TestCase):
         except BaseException as e:
             raise e
         finally:
-            for i in listdir(join(TEST_PATH,TEST_DIRS)):
-                remove(join(TEST_PATH,TEST_DIRS,i))
-            rmdir(join(TEST_PATH, TEST_DIRS))
+            cleanup()
 
     def test_find_folder(self):
         self.assertEqual(find_folder(PATH_NAME),TEST_PATH)
 
     def test_find_file(self):
-        self.assertEqual(find_file(TEST_FILE),join(TEST_PATH,TEST_FILE))
+        self.assertEqual(find_file(TEST_CODE),
+                         join(TEST_PATH,TEST_CODE))
 
     def test_sync_folder(self):
         os.mkdir(TEST_DIRS)
         sync_folder(TEST_PATH, join(TEST_PATH,TEST_DIRS))
         try:
-            self.assertListEqual([TEST_FILE, 'test_file.py'],
+            self.assertListEqual([TEST_DATA, 'test_file.py'],
                                  listdir(join(TEST_PATH,TEST_DIRS)))
         except BaseException as e:
             raise e
         finally:
-            for i in listdir(join(TEST_PATH,TEST_DIRS)):
-                remove(join(TEST_PATH,TEST_DIRS,i))
-            rmdir(join(TEST_PATH,TEST_DIRS))
+            cleanup()
 
     def test_read_local_file(self):
-        self.assertEqual(read_local_file(TEST_FILE),'Hello\nWorld')
+        self.assertEqual(read_local_file(join(TEST_DATA,TEST_FILE)),
+                         'Hello\nWorld')
 
     def test_relative_path(self):
         mkdir(join(TEST_PATH,TEST_DIRS))
@@ -73,8 +74,7 @@ class test_file(unittest.TestCase):
         except BaseException as e:
             raise e
         finally:
-            rmdir(join(TEST_PATH,TEST_DIRS,TEST_DIRS))
-            rmdir(join(TEST_PATH,TEST_DIRS))
+            cleanup()
 
     def test_mdate(self):
         tested = open('_'+TEST_FILE, 'w')
@@ -85,10 +85,11 @@ class test_file(unittest.TestCase):
         remove(join(TEST_PATH,'_'+TEST_FILE))
 
     def test_read_file(self):
-        self.assertEqual(read_file(join(TEST_PATH,TEST_FILE)),TEST_CONT)
+        self.assertEqual(read_file(join(TEST_PATH,TEST_DATA,TEST_FILE)),
+                         TEST_CONT)
 
     def test_copy_file(self):
-        copy_file(TEST_FILE, '_'+TEST_FILE)
+        copy_file(join(TEST_DATA,TEST_FILE), '_'+TEST_FILE)
         try:
             self.assertEqual(''.join([i for i in open('_'+TEST_FILE).read()]),
                             TEST_CONT)
@@ -98,7 +99,9 @@ class test_file(unittest.TestCase):
             remove(join(TEST_PATH,'_'+TEST_FILE))
 
     def test_read_folder(self):
-        self.assertEqual(read_folder(TEST_PATH)[TEST_FILE],TEST_CONT)
+        actual = read_folder(TEST_PATH)
+        test = {k.replace('/','\\'):v for k, v in actual.items()}
+        self.assertEqual(TEST_CONT,test[join(TEST_DATA,TEST_FILE)])
 
 if __name__ == '__main__':
     unittest.main()
