@@ -35,9 +35,8 @@ class TestFile(unittest.TestCase):
                          join(TEST_PATH, TEST_CODE))
 
     def test_sync_folder(self):
-        sync_folder(TEST_PATH, join(TEST_PATH, TEST_DIRS))
-        self.assertListEqual([TEST_DATA, 'test_file.py'],
-                             listdir(join(TEST_PATH, TEST_DIRS)))
+        sync_folder(join(TEST_PATH, TEST_DATA), join(TEST_PATH, TEST_DIRS))
+        self.assertIn(TEST_FILE, listdir(join(TEST_PATH, TEST_DIRS)))
 
     def test_read_local_file(self):
         self.assertEqual(read_local_file(join(TEST_DATA, TEST_FILE)),
