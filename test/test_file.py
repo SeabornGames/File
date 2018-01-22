@@ -35,7 +35,6 @@ class TestFile(unittest.TestCase):
                          join(TEST_PATH, TEST_CODE))
 
     def test_sync_folder(self):
-        os.mkdir(os.path.join(TEST_PATH, TEST_DIRS))
         sync_folder(TEST_PATH, join(TEST_PATH, TEST_DIRS))
         self.assertListEqual([TEST_DATA, 'test_file.py'],
                              listdir(join(TEST_PATH, TEST_DIRS)))
@@ -51,16 +50,12 @@ class TestFile(unittest.TestCase):
             relative_path(join(TEST_DIRS, TEST_DIRS)),
             join(TEST_PATH, TEST_DIRS, TEST_DIRS))
 
-    def test_mdate(self):
-        date = mdate(join(TEST_PATH, TEST_DATA, TEST_FILE))
-        self.assertEqual(1516574402.2293346, date)
-
     def test_read_file(self):
         self.assertEqual(read_file(join(TEST_PATH, TEST_DATA, TEST_FILE)),
                          TEST_CONT)
 
     def test_copy_file(self):
-        copy_file(join(TEST_DATA, TEST_FILE),
+        copy_file(join(TEST_PATH, TEST_DATA, TEST_FILE),
                   join(TEST_PATH, TEST_DIRS, TEST_FILE))
         with open(join(TEST_PATH, TEST_DIRS, TEST_FILE), 'r') as fp:
             self.assertEqual(fp.read(), TEST_CONT)

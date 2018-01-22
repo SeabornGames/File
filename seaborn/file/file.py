@@ -59,6 +59,7 @@ def get_filename(filename, trash=False):
 def find_folder(folder_name, path=None):
     frm = inspect.currentframe().f_back
     path = path or os.path.split(frm.f_code.co_filename)[0] or os.getcwd()
+    path = os.path.abspath(path)
     for i in range(100):
         try:
             if os.path.exists(os.path.join(path, folder_name)):
