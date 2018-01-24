@@ -235,3 +235,33 @@ def read_folder(folder, ext='*', uppercase=False, replace_dot='.', parent=''):
                     key = uppercase and key.upper() or key
                     ret[parent + key] = read_file(os.path.join(folder, file))
     return ret
+
+
+def find_item(target, from_path=None, depth_first=False):
+    """
+    Finds a file or subdirectory from the given 
+    path, defaulting to a breadth-first search.
+    :param target:      file or subdirectory to be found
+    :param from_path:   path from which to search (defaults to cwd)
+    :param depth_first: changes search to depth-first
+    :return:            path to desired file or subdirectory
+    """
+    if not from_path:
+        from_path = os.getcwd()
+    check = ['']
+    while len(check) != 0:
+        dir = check.pop(0)
+        try:
+            roster = os.listdir(os.path.join(from_path, dir))
+        except PermissionError:
+            continue    # ignore directories that are inaccessible
+        if target in roster:
+            return os.path.join(from_path, dir, target)
+        else:
+            stack = [os.path.join(from_path, dir, i)
+                     for i in roster if '.' not in i]
+            if depth_first:
+                check = stack + check
+            else:
+                check += stack
+    raise FileNotFoundError("Search did not find %s"%target)
