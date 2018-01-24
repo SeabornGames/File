@@ -12,7 +12,6 @@ if os.name == 'posix':  # mac
 else:
     TRASH_PATH = '.'  # todo implement for other os
 
-
 def mkdir(path):
     if not isinstance(path, str):
         path = str(path)
@@ -253,7 +252,7 @@ def find_item(target, from_path=None, depth_first=False):
         dir = check.pop(0)
         try:
             roster = os.listdir(os.path.join(from_path, dir))
-        except PermissionError:
+        except Exception:
             continue    # ignore directories that are inaccessible
         if target in roster:
             return os.path.join(from_path, dir, target)
