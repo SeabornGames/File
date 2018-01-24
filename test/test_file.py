@@ -103,5 +103,9 @@ class test_file(unittest.TestCase):
         test = {k.replace('/','\\'):v for k, v in actual.items()}
         self.assertEqual(TEST_CONT,test[join(TEST_DATA,TEST_FILE)])
 
+    def test_find_item(self):
+        self.assertTrue(find_item("hello.wrld").endswith('\data\hello.wrld'),
+                        "Did not find correct directory")
+
 if __name__ == '__main__':
     unittest.main()
