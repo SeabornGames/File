@@ -22,7 +22,7 @@ def cleanup(path=TEST_DIRS):
             cleanup(join(path,item))
     rmdir(join(TEST_PATH,path))
 
-class test_file(unittest.TestCase):
+class TestFile(unittest.TestCase):
 
     def test_mkdir(self):
         mkdir(join(TEST_PATH,TEST_DIRS))
