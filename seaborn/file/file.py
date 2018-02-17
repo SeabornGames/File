@@ -26,8 +26,9 @@ def mkdir(path):
             os.mkdir(full_path)
 
 
-def mkdir_for_file(filename):
-    mkdir(os.path.split(filename)[0])
+def mkdir_for_file(path):
+    path = path if os.path.isdir(path) else os.path.dirname(path)
+    mkdir(path)
 
 
 def clear_path(path):

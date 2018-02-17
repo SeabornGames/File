@@ -5,7 +5,7 @@ from os.path import join, abspath, split
 from seaborn.file.file import *
 
 TEST_PATH = split(abspath(__file__))[0]
-TEST_DIRS = 'test_result_folder'
+TEST_DIRS = 'tmp'
 TEST_DATA = 'data'
 TEST_FILE = 'hello_world.txt'
 TEST_CONT = 'Hello\nWorld'
