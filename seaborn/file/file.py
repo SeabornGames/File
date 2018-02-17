@@ -1,11 +1,11 @@
 """ This module contains helper functions for manipulating files """
-__author__ = 'Ben Christenson'
-__date__ = "10/7/15"
 import os
 import shutil
 import hashlib
 import inspect
 import json
+__author__ = 'Ben Christenson'
+__date__ = "10/7/15"
 
 if os.name == 'posix':  # mac
     TRASH_PATH = '/'.join(os.getcwd().split('/')[:3] + ['.Trash'])
@@ -24,10 +24,12 @@ def mkdir(path):
         full_path += '/' + directory
         if not os.path.exists(full_path):
             os.mkdir(full_path)
+    assert os.path.exists(path), "Failed to make directory: %s" % path
 
 
-def mkdir_for_file(filename):
-    mkdir(os.path.split(filename)[0])
+def mkdir_for_file(path):
+    path = path if os.path.isdir(path) else os.path.dirname(path)
+    mkdir(path)
 
 
 def clear_path(path):
@@ -37,6 +39,8 @@ def clear_path(path):
     :return:     None
     """
     from time import time
+    if not os.path.exists(path):
+        return
     if TRASH_PATH == '.':
         shutil.rmtree(path, ignore_errors=True)
     else:
@@ -59,6 +63,7 @@ def get_filename(filename, trash=False):
 def find_folder(folder_name, path=None):
     frm = inspect.currentframe().f_back
     path = path or os.path.split(frm.f_code.co_filename)[0] or os.getcwd()
+    path = os.path.abspath(path)
     for i in range(100):
         try:
             if os.path.exists(os.path.join(path, folder_name)):
@@ -66,7 +71,7 @@ def find_folder(folder_name, path=None):
             path = os.path.split(path)[0]
             if len(path) <= 1:
                 break
-        except Exception as e:
+        except Exception:
             return None
     if os.path.exists(os.path.join(path, folder_name)):
         return os.path.join(path, folder_name)
@@ -93,21 +98,18 @@ def find_file(file, path=None):
             path = os.path.split(path)[0]
             if len(path) <= 1:
                 break
-        except Exception as e:
-            break;
+        except Exception:
+            break
     if os.path.exists(os.path.join(path, file)):
         return os.path.join(path, file)
-    raise Exception("Failed to find file: %s in the folder hierachy: %s"%(file,original_path))
+    raise Exception("Failed to find file: %s in the folder hierarchy: %s" % (
+        file, original_path))
 
 
-def sync_folder(source_folder, destination_folder, soft_link='folder',
+def sync_folder(source_folder, destination_folder, soft_link=True,
                 only_files=False):
     clear_path(destination_folder)
-    if os.name == 'posix' and soft_link == 'folder':
-        mkdir_for_file(destination_folder)
-        os.system('ln -s "%s" "%s"' % (source_folder, destination_folder))
-        return
-
+    mkdir(destination_folder)
     for root, subs, files in os.walk(source_folder):
         for file in files:
             file = os.path.join(root, file)
@@ -119,10 +121,9 @@ def sync_folder(source_folder, destination_folder, soft_link='folder',
             mkdir(sub.replace(source_folder, destination_folder))
 
 
-def _md5_of_file(context, sub_string):
+def _md5_of_file(sub_string):
     """
         This will return the md5 of the file in sub_string
-    :param context:
     :param sub_string: str of the path or relative path to a file
     :return: str
     """
@@ -167,7 +168,7 @@ def relative_path(*args):
 
 def mdate(filename):
     """
-    :param filname: str of the file
+    :param filename: str of the file
     :return: float of the modified date of the file
     """
     return os.stat(filename).st_mtime
@@ -175,12 +176,12 @@ def mdate(filename):
 
 def read_file(full_path):
     assert os.path.exists(full_path), "File '%s' doesn't exist" % full_path
-
-    ret = open(full_path, 'r').read()
+    with open(full_path, 'r') as f:
+        ret = f.read()
     if full_path.endswith('.json'):
         try:
             json.loads(ret)
-        except Exception as e:
+        except Exception:
             raise Exception("%s is not valid JSON" % full_path)
     return ret
 
@@ -206,7 +207,7 @@ def copy_file(source_file, destination_file, soft_link=False):
     else:
         try:
             shutil.copy(source_file, destination_file)
-        except Exception as e:
+        except Exception:
             raise
 
 
@@ -215,7 +216,7 @@ def read_folder(folder, ext='*', uppercase=False, replace_dot='.', parent=''):
         This will read all of the files in the folder with the extension equal
         to ext
     :param folder: str of the folder name
-    :param ext: str of the extention
+    :param ext: str of the extension
     :param uppercase: bool if True will uppercase all the file names
     :param replace_dot: str will replace "." in the filename
     :param parent: str of the parent folder

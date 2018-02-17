@@ -6,7 +6,7 @@ with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as f:
 setup(
     name='seaborn-file',
     version='0.0.1',
-    description='SeabornFile enables the manipulation of the'
+    description='Seaborn-File enables the manipulation of the'
                 'directories of a computer within a program.',
     long_description='',
     author='Ben Christenson',
@@ -15,9 +15,10 @@ setup(
     download_url='https://github.com/SeabornGames/File'
                  '/tarball/download',
     keywords=['os'],
-    install_requires=[],
-    extras_require={
-    },
+    install_requires=[
+        'seaborn-hack',
+    ],
+    extras_require={},
     packages=['seaborn'] + ['seaborn.' + i
                             for i in find_packages(where='./seaborn')],
     license='MIT License',
