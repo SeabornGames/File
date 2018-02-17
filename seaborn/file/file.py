@@ -176,8 +176,8 @@ def mdate(filename):
 
 def read_file(full_path):
     assert os.path.exists(full_path), "File '%s' doesn't exist" % full_path
-
-    ret = open(full_path, 'r').read()
+    with open(full_path, 'r') as f:
+        ret = f.read()
     if full_path.endswith('.json'):
         try:
             json.loads(ret)
