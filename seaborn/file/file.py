@@ -24,10 +24,12 @@ def mkdir(path):
         full_path += '/' + directory
         if not os.path.exists(full_path):
             os.mkdir(full_path)
+    assert os.path.exists(path), "Failed to make directory: %s"%path
 
 
-def mkdir_for_file(filename):
-    mkdir(os.path.split(filename)[0])
+def mkdir_for_file(path):
+    path = path if os.path.isdir(path) else os.path.dirname(path)
+    mkdir(path)
 
 
 def clear_path(path):
@@ -37,6 +39,8 @@ def clear_path(path):
     :return:     None
     """
     from time import time
+    if not os.path.exists(path):
+        return
     if TRASH_PATH == '.':
         shutil.rmtree(path, ignore_errors=True)
     else:
@@ -59,6 +63,7 @@ def get_filename(filename, trash=False):
 def find_folder(folder_name, path=None):
     frm = inspect.currentframe().f_back
     path = path or os.path.split(frm.f_code.co_filename)[0] or os.getcwd()
+    path = os.path.abspath(path)
     for i in range(100):
         try:
             if os.path.exists(os.path.join(path, folder_name)):
@@ -100,19 +105,15 @@ def find_file(file, path=None):
     raise Exception("Failed to find file: %s in the folder hierachy: %s"%(file,original_path))
 
 
-def sync_folder(source_folder, destination_folder, soft_link='folder',
+def sync_folder(source_folder, destination_folder, soft_link=True,
                 only_files=False):
     clear_path(destination_folder)
-    if os.name == 'posix' and soft_link == 'folder':
-        mkdir_for_file(destination_folder)
-        os.system('ln -s "%s" "%s"' % (source_folder, destination_folder))
-        return
-
+    mkdir(destination_folder)
     for root, subs, files in os.walk(source_folder):
         for file in files:
             file = os.path.join(root, file)
             copy_file(file, file.replace(source_folder, destination_folder),
-                      soft_link=bool(soft_link))
+                                         soft_link=bool(soft_link))
         if only_files:
             break
         for sub in subs:
@@ -175,8 +176,8 @@ def mdate(filename):
 
 def read_file(full_path):
     assert os.path.exists(full_path), "File '%s' doesn't exist" % full_path
-
-    ret = open(full_path, 'r').read()
+    with open(full_path, 'r') as f:
+        ret = f.read()
     if full_path.endswith('.json'):
         try:
             json.loads(ret)
