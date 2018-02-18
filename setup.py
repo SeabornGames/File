@@ -16,7 +16,6 @@ setup(
                  '/tarball/download',
     keywords=['os'],
     install_requires=[
-        'seaborn-hack',
     ],
     extras_require={},
     packages=['seaborn'] + ['seaborn.' + i
