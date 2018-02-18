@@ -63,6 +63,9 @@ class TestFile(unittest.TestCase):
         result = read_folder(TEST_PATH)
         self.assertEqual(TEST_CONT, result['%s/%s'%(TEST_DATA, TEST_FILE)])
 
+    def test_find_path(self):
+        self.assertTrue(find_path("hello_world.txt").endswith('\data\hello_world.txt'),
+                        "Did not find correct directory")
 
 if __name__ == '__main__':
     unittest.main()
