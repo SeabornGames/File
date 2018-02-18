@@ -2,7 +2,7 @@ import unittest
 from shutil import rmtree
 from os import listdir
 from os.path import join, abspath, split
-from seaborn.file.file import *
+from seaborn_file.file import *
 
 TEST_PATH = split(abspath(__file__))[0]
 TEST_DIRS = 'tmp'
