@@ -4,6 +4,7 @@ import shutil
 import hashlib
 import inspect
 import json
+from glob import glob
 
 if os.name == 'posix':  # mac
     TRASH_PATH = '/'.join(os.getcwd().split('/')[:3] + ['.Trash'])
@@ -27,6 +28,15 @@ def mkdir(path):
 def mkdir_for_file(path):
     path = path if os.path.isdir(path) else os.path.dirname(path)
     mkdir(path)
+
+
+def file_list(file_wildcard = '*.*', path=None):
+    frm = inspect.currentframe().f_back
+    path = path or os.path.split(frm.f_code.co_filename)[0]
+    ret = []
+    for root, subs, files in os.walk(os.path.abspath(path)):
+        ret += glob(os.path.join(root, file_wildcard))
+    return ret
 
 
 def clear_path(path):
