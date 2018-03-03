@@ -77,7 +77,7 @@ class TestFile(unittest.TestCase):
             self.assertEqual(from_below, from_above,
                             "Failed to find file from above")
         finally:
-            clear_path(relative_path('data\a'))
+            clear_path(relative_path(r'data\a'))
 
 
 if __name__ == '__main__':
