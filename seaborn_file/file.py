@@ -11,6 +11,7 @@ if os.name == 'posix':  # mac
 else:
     TRASH_PATH = '.'  # todo implement for other os
 
+
 def mkdir(path):
     if not isinstance(path, str):
         path = str(path)
@@ -67,52 +68,6 @@ def get_filename(filename, trash=False):
     return full_path
 
 
-def find_folder(folder_name, path=None):
-    frm = inspect.currentframe().f_back
-    path = path or os.path.split(frm.f_code.co_filename)[0] or os.getcwd()
-    path = os.path.abspath(path)
-    for i in range(100):
-        try:
-            if os.path.exists(os.path.join(path, folder_name)):
-                return os.path.join(path, folder_name)
-            path = os.path.split(path)[0]
-            if len(path) <= 1:
-                break
-        except Exception:
-            return None
-    if os.path.exists(os.path.join(path, folder_name)):
-        return os.path.join(path, folder_name)
-
-
-def find_file(file, path=None):
-    """
-        This will find a file from path and if not found looks in the
-        parent directory.
-    :param file: str of the file name
-    :param path: str of the path, defaults to relevant path of the calling func
-    :return: str of the full path if found
-    """
-    frm = inspect.currentframe().f_back
-    if frm.f_code.co_name == 'run_code':
-        frm = frm.f_back
-    path = path or os.path.split(frm.f_code.co_filename)[0] or os.getcwd()
-    original_path = path
-    for i in range(100):
-        try:
-            file_path = os.path.abspath(os.path.join(path, file))
-            if os.path.exists(file_path):
-                return file_path
-            path = os.path.split(path)[0]
-            if len(path) <= 1:
-                break
-        except Exception:
-            break
-    if os.path.exists(os.path.join(path, file)):
-        return os.path.join(path, file)
-    raise Exception("Failed to find file: %s in the folder hierarchy: %s" % (
-        file, original_path))
-
-
 def sync_folder(source_folder, destination_folder, soft_link=True,
                 only_files=False):
     clear_path(destination_folder)
@@ -160,17 +115,26 @@ def read_local_file(filename):
     return read_file(os.path.join(path, filename))
 
 
-def relative_path(*args):
+def relative_path(sub_directory='', function_index=1):
     """
         This will return the file relative to this python script
-    :param args: str of the relative path
-    :return: str of the full path
+    :param subd_irectory:  str of the relative path
+    :param function_index: int of the number of function calls to go back
+    :return:               str of the full path
     """
-    frm = inspect.currentframe().f_back
+    frm = inspect.currentframe()
+    for i in range(function_index):
+        frm = frm.f_back
     if frm.f_code.co_name == 'run_code':
         frm = frm.f_back
+
+    if not isinstance(sub_directory, list):
+        sub_directory = sub_directory.replace('\\','/').split('/')
+
     path = os.path.split(frm.f_code.co_filename)[0]
-    return os.path.abspath(os.path.join(path, *args))
+    if sub_directory:
+        path = os.path.abspath(os.path.join(path, *sub_directory))
+    return path
 
 
 def mdate(filename):
@@ -245,31 +209,53 @@ def read_folder(folder, ext='*', uppercase=False, replace_dot='.', parent=''):
     return ret
 
 
-def find_path(target, from_path=None, depth_first=False):
+class FileNotFoundError(Exception):
+    pass
+
+
+def find_path(target, from_path=None, direction='both', depth_first=False):
     """
-    Finds a file or subdirectory from the given 
+    Finds a file or subdirectory from the given
     path, defaulting to a breadth-first search.
-    :param target:      file or subdirectory to be found
-    :param from_path:   path from which to search (defaults to cwd)
-    :param depth_first: changes search to depth-first
-    :return:            path to desired file or subdirectory
+    :param target:      str of file or subdirectory to be found
+    :param from_path:   str of path from which to search (defaults to relative)
+    :param direction:   str enum of up, down, both
+    :param depth_first: bool of changes search to depth-first
+    :return:            str of path to desired file or subdirectory
     """
-    if not from_path:
-        from_path = os.getcwd()
-    check = ['']
-    while len(check) != 0:
-        dir = check.pop(0)
-        try:
-            roster = os.listdir(os.path.join(from_path, dir))
-        except Exception:
-            continue    # ignore directories that are inaccessible
-        if target in roster:
-            return os.path.join(from_path, dir, target)
-        else:
-            stack = [os.path.join(from_path, dir, i)
-                     for i in roster if '.' not in i]
-            if depth_first:
-                check = stack + check
+    from_path = from_path if from_path else relative_path('', 2)
+
+    if direction == 'up' or direction == 'both':
+        path = from_path
+        for i in range(100):
+            try:
+                file_path = os.path.abspath(os.path.join(path, target))
+                if os.path.exists(file_path):
+                    return file_path
+                path = os.path.split(path)[0]
+                if len(path) <= 1:
+                    break
+            except Exception:
+                break
+        if os.path.exists(os.path.join(path, target)):
+            return os.path.join(path, target)
+
+    if direction == 'down' or direction == 'both':
+        check = ['']
+        while len(check) != 0:
+            dir = check.pop(0)
+            try:
+                roster = os.listdir(os.path.join(from_path, dir))
+            except Exception:
+                continue    # ignore directories that are inaccessible
+            if target in roster:
+                return os.path.join(from_path, dir, target)
             else:
-                check += stack
-    raise FileNotFoundError("Search did not find %s"%target)
+                stack = [os.path.join(from_path, dir, i)
+                         for i in roster if '.' not in i]
+                if depth_first:
+                    check = stack + check
+                else:
+                    check += stack
+
+    raise FileNotFoundError("Failed to find file: %s from %s", file, from_path)
