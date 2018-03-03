@@ -4,8 +4,7 @@ import shutil
 import hashlib
 import inspect
 import json
-__author__ = 'Ben Christenson'
-__date__ = "10/7/15"
+from glob import glob
 
 if os.name == 'posix':  # mac
     TRASH_PATH = '/'.join(os.getcwd().split('/')[:3] + ['.Trash'])
@@ -30,6 +29,15 @@ def mkdir(path):
 def mkdir_for_file(path):
     path = path if os.path.isdir(path) else os.path.dirname(path)
     mkdir(path)
+
+
+def file_list(file_wildcard = '*.*', path=None):
+    frm = inspect.currentframe().f_back
+    path = path or os.path.split(frm.f_code.co_filename)[0]
+    ret = []
+    for root, subs, files in os.walk(os.path.abspath(path)):
+        ret += glob(os.path.join(root, file_wildcard))
+    return ret
 
 
 def clear_path(path):
@@ -58,52 +66,6 @@ def get_filename(filename, trash=False):
     if os.path.exists(full_path):
         os.remove(full_path)
     return full_path
-
-
-def find_folder(folder_name, path=None):
-    frm = inspect.currentframe().f_back
-    path = path or os.path.split(frm.f_code.co_filename)[0] or os.getcwd()
-    path = os.path.abspath(path)
-    for i in range(100):
-        try:
-            if os.path.exists(os.path.join(path, folder_name)):
-                return os.path.join(path, folder_name)
-            path = os.path.split(path)[0]
-            if len(path) <= 1:
-                break
-        except Exception:
-            return None
-    if os.path.exists(os.path.join(path, folder_name)):
-        return os.path.join(path, folder_name)
-
-
-def find_file(file, path=None):
-    """
-        This will find a file from path and if not found looks in the
-        parent directory.
-    :param file: str of the file name
-    :param path: str of the path, defaults to relevant path of the calling func
-    :return: str of the full path if found
-    """
-    frm = inspect.currentframe().f_back
-    if frm.f_code.co_name == 'run_code':
-        frm = frm.f_back
-    path = path or os.path.split(frm.f_code.co_filename)[0] or os.getcwd()
-    original_path = path
-    for i in range(100):
-        try:
-            file_path = os.path.abspath(os.path.join(path, file))
-            if os.path.exists(file_path):
-                return file_path
-            path = os.path.split(path)[0]
-            if len(path) <= 1:
-                break
-        except Exception:
-            break
-    if os.path.exists(os.path.join(path, file)):
-        return os.path.join(path, file)
-    raise Exception("Failed to find file: %s in the folder hierarchy: %s" % (
-        file, original_path))
 
 
 def sync_folder(source_folder, destination_folder, soft_link=True,
@@ -153,17 +115,26 @@ def read_local_file(filename):
     return read_file(os.path.join(path, filename))
 
 
-def relative_path(*args):
+def relative_path(sub_directory='', function_index=1):
     """
         This will return the file relative to this python script
-    :param args: str of the relative path
-    :return: str of the full path
+    :param subd_irectory:  str of the relative path
+    :param function_index: int of the number of function calls to go back
+    :return:               str of the full path
     """
-    frm = inspect.currentframe().f_back
+    frm = inspect.currentframe()
+    for i in range(function_index):
+        frm = frm.f_back
     if frm.f_code.co_name == 'run_code':
         frm = frm.f_back
+
+    if not isinstance(sub_directory, list):
+        sub_directory = sub_directory.replace('\\','/').split('/')
+
     path = os.path.split(frm.f_code.co_filename)[0]
-    return os.path.abspath(os.path.join(path, *args))
+    if sub_directory:
+        path = os.path.abspath(os.path.join(path, *sub_directory))
+    return path
 
 
 def mdate(filename):
@@ -236,3 +207,55 @@ def read_folder(folder, ext='*', uppercase=False, replace_dot='.', parent=''):
                     key = uppercase and key.upper() or key
                     ret[parent + key] = read_file(os.path.join(folder, file))
     return ret
+
+
+class FileNotFoundError(Exception):
+    pass
+
+
+def find_path(target, from_path=None, direction='both', depth_first=False):
+    """
+    Finds a file or subdirectory from the given
+    path, defaulting to a breadth-first search.
+    :param target:      str of file or subdirectory to be found
+    :param from_path:   str of path from which to search (defaults to relative)
+    :param direction:   str enum of up, down, both
+    :param depth_first: bool of changes search to depth-first
+    :return:            str of path to desired file or subdirectory
+    """
+    from_path = from_path if from_path else relative_path('', 2)
+
+    if direction == 'up' or direction == 'both':
+        path = from_path
+        for i in range(100):
+            try:
+                file_path = os.path.abspath(os.path.join(path, target))
+                if os.path.exists(file_path):
+                    return file_path
+                path = os.path.split(path)[0]
+                if len(path) <= 1:
+                    break
+            except Exception:
+                break
+        if os.path.exists(os.path.join(path, target)):
+            return os.path.join(path, target)
+
+    if direction == 'down' or direction == 'both':
+        check = ['']
+        while len(check) != 0:
+            dir = check.pop(0)
+            try:
+                roster = os.listdir(os.path.join(from_path, dir))
+            except Exception:
+                continue    # ignore directories that are inaccessible
+            if target in roster:
+                return os.path.join(from_path, dir, target)
+            else:
+                stack = [os.path.join(from_path, dir, i)
+                         for i in roster if '.' not in i]
+                if depth_first:
+                    check = stack + check
+                else:
+                    check += stack
+
+    raise FileNotFoundError("Failed to find file: %s from %s", file, from_path)

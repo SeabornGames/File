@@ -2,7 +2,7 @@ import unittest
 from shutil import rmtree
 from os import listdir
 from os.path import join, abspath, split
-from seaborn.file.file import *
+from seaborn_file.file import *
 
 TEST_PATH = split(abspath(__file__))[0]
 TEST_DIRS = 'tmp'
@@ -28,10 +28,10 @@ class TestFile(unittest.TestCase):
         self.assertIn(TEST_DIRS, listdir(TEST_PATH))
 
     def test_find_folder(self):
-        self.assertEqual(TEST_PATH, find_folder('test'))
+        self.assertEqual(TEST_PATH, find_path('test', direction='up'))
 
     def test_find_file(self):
-        self.assertEqual(find_file(TEST_CODE),
+        self.assertEqual(find_path(TEST_CODE),
                          join(TEST_PATH, TEST_CODE))
 
     def test_sync_folder(self):
@@ -62,6 +62,22 @@ class TestFile(unittest.TestCase):
     def test_read_folder(self):
         result = read_folder(TEST_PATH)
         self.assertEqual(TEST_CONT, result['%s/%s'%(TEST_DATA, TEST_FILE)])
+
+    def test_find_path(self):
+        try:
+            path = relative_path(r'data\a\b\c\d')
+            mkdir(path)
+        except Exception as ex:
+            raise self.skipTest(ex)
+        try:
+            from_below = find_path("hello_world.txt", path, direction = 'up')
+            self.assertTrue(from_below.endswith('hello_world.txt'),
+                            "Failed to find file from below")
+            from_above = find_path("hello_world.txt", direction='down')
+            self.assertEqual(from_below, from_above,
+                            "Failed to find file from above")
+        finally:
+            clear_path(relative_path('data\a'))
 
 
 if __name__ == '__main__':
