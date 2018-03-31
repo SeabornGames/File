@@ -1,12 +1,16 @@
 from setuptools import setup
 import os
 
-with open(os.path.join(os.path.dirname(__file__), 'README.md')) as f:
-    long_description = f.read()
+try:
+    with open(os.path.join(os.path.dirname(__file__), 'README.md')) as f:
+        long_description = f.read()
+except Exception:
+    long_description = ''
+
 
 setup(
     name='seaborn-file',
-    version='1.1.0',
+    version='1.1.1',
     description='Seaborn-File enables the manipulation of the'
                 'directories of a computer within a program.',
     long_description='',
