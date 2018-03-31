@@ -6,7 +6,7 @@ with open(os.path.join(os.path.dirname(__file__), 'README.md')) as f:
 
 setup(
     name='seaborn-file',
-    version='1.0.0',
+    version='1.0.2',
     description='Seaborn-File enables the manipulation of the'
                 'directories of a computer within a program.',
     long_description='',
